@@ -10,4 +10,8 @@ router.get("/dashboard-gov",(req,res)=>{
     res.render('GovernmentDashboard')
 })
 
+router.get("/document",(req,res)=>{
+    res.render('document')
+})
+
 module.exports = router;
