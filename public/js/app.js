@@ -80,9 +80,14 @@ App = {
         await App.user.setUser(data['wallet_id'], data['name'], data['role'], data['authority'], { from: App.account })
         let r = await fetch('/auth/register', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-type': 'application/json;charset=UTF-8' } })
         r = await r.json()
-        if (r) {
+        if (r && data['role'] === "government") {
             alert(data['name'] + ' Welcome to the ****')
-            window.location.href = `/dashboard`
+            window.location.href = `/dashboard-gn`
+        }else if(r && data['role'] === "individual"){
+            alert(data['name'] + ' Welcome to the ****')
+            window.location.href = `/dashboard-in`
+        }else{
+            alert(r.error);
         }
     },
 
