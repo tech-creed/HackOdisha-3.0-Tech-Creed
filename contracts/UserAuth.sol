@@ -16,7 +16,7 @@
 
     function checkUserExists(address _userAddress) public view returns(bool) 
     {
-        return  keccak256(abi.encodePacked(Users[_userAddress].privilege)) ==  keccak256(abi.encodePacked("government")) ||  keccak256(abi.encodePacked(Users[_userAddress].privilege)) == keccak256(abi.encodePacked("industry"));
+        return  keccak256(abi.encodePacked(Users[_userAddress].privilege)) ==  keccak256(abi.encodePacked("government")) ||  keccak256(abi.encodePacked(Users[_userAddress].privilege)) == keccak256(abi.encodePacked("individual"));
     }
 
     function setUser(address _walletId,string memory _name,string memory _privilege,string memory _authority) public{
