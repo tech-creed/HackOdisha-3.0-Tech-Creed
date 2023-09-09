@@ -7,8 +7,8 @@
     <!-- ===== Icons ===== -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
       <!-- Favicons -->
-  <link href="/img/favicon.png" rel="icon">
-  <link href="/img/apple-touch-icon.png" rel="apple-touch-icon">
+  <link href="img/favicon.png" rel="icon">
+  <link href="img/apple-touch-icon.png" rel="apple-touch-icon">
     <!-- ===== CSS ===== -->
     <link rel="stylesheet" href="/css/login_register.css">
          
@@ -18,17 +18,35 @@
     
     <div class="container">
             <div class="form">
-                <span class="title">Welcome Back,</span>
+                <span class="title">Register</span>
 
-                <form onSubmit="App.connectWalletLogin(); return false;">
+                <form onSubmit="App.connectWalletRegister(); return false;">
+                    <div class="input-field">
+                        <select id="register_role" name="" id="">
+                            <option value="" hidden>Select Role</option>
+                            <option value="individual">Individual</option>
+                            <option value="government">Government</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <input id="register_name" type="text" placeholder="Enter Name" required>
+                        <i class="bi bi-check"></i>
+                    </div>
+
+                    <div class="input-field">
+                        <input id="register_authority" type="text" placeholder="Authority(applicable for Goverment)">
+                        <i class="bi bi-check"></i>
+                    </div>
+                    
                     <div class="input-field button">
                         <input type="submit" value="Connect Wallet">
                     </div>
+                    
                 </form>
 
                 <div class="login-signup">
-                    <span class="text">Not a Member ?
-                        <a href="/auth/register" class="text">Link Your Wallet</a>
+                    <span class="text">Already Member ?
+                        <a href="/auth/login" class="text">Connect Now</a>
                     </span>
                 </div>
             </div>
@@ -41,6 +59,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.0-rc.0/web3.min.js"></script>
 
   <!-- Template Main JS File -->
+
 
 </body>
 </html>
