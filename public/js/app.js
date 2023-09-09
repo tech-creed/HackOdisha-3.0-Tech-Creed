@@ -104,8 +104,14 @@ App = {
             })
             let r = await fetch('/auth/login', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-type': 'application/json; charset=UTF-8' } })
             r = await r.json();
-            if (r) {
-                window.location.href = `/dashboard`
+            if (r && data['role'] === "government") {
+                alert(data['name'] + ' Welcome to the ****')
+                window.location.href = `/dashboard-gn`
+            }else if(r && data['role'] === "individual"){
+                alert(data['name'] + ' Welcome to the ****')
+                window.location.href = `/dashboard-in`
+            }else{
+                alert(r.error);
             }
         } else {
             alert('need to register')

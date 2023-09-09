@@ -42,12 +42,12 @@ contract CertificateNFT is ERC721, ERC721URIStorage {
 
     // ====== allocate the role for the given address =====
     function grantGovernmentPrivilege(address _account) public {
-        require(address(0) == _account, "need to send a valid address");
+        require(address(0) != _account, "need to send a valid address");
         GovernmentAccounts[_account] = true;
     }
 
     function grantInduvitualsPrivilege(address _account) public {
-        require(address(0) == _account, "need to send a valid address");
+        require(address(0) != _account, "need to send a valid address");
         InduvitualsAccounts[_account] = true;
     }
 
