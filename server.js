@@ -18,8 +18,10 @@ app.set('view engine', 'ejs')
 
 //Routes
 const AuthenticationRoute = require('./routes/authRoutes.js')
+const DashboardRoute = require('./routes/dashboardRoute.js')
 
 app.use('/auth', AuthenticationRoute)
+app.use('/', DashboardRoute)
 
 
 app.get("/",(req,res)=>{
