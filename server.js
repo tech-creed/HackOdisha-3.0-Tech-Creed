@@ -17,7 +17,9 @@ const PORT = 5000;
 app.set('view engine', 'ejs')
 
 //Routes
+const AuthenticationRoute = require('./routes/authRoutes.js')
 
+app.use('/auth', AuthenticationRoute)
 
 
 app.get("/",(req,res)=>{
