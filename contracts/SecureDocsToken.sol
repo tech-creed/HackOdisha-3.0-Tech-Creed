@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract CertificateNFT is ERC721, ERC721URIStorage {
+contract SecureDocsToken is ERC721, ERC721URIStorage {
     using Counters for Counters.Counter;
 
     Counters.Counter public certificateCounter;
@@ -16,7 +16,7 @@ contract CertificateNFT is ERC721, ERC721URIStorage {
         string data; // (just small description about certificate)
         bool validated;
         uint256 tokenId;
-        string ipfsAddress;
+        string URI;
     }
 
     // account data
@@ -26,7 +26,7 @@ contract CertificateNFT is ERC721, ERC721URIStorage {
     // certificates details data
     mapping(address => Certificate) public certificates;
 
-    // Events to log important contract actions
+    // log important contract actions
     event CertificateUploaded(
         address indexed owner,
         uint256 indexed certificateId
@@ -34,13 +34,13 @@ contract CertificateNFT is ERC721, ERC721URIStorage {
     event CertificateValidated(uint256 indexed certificateId, bool validated);
 
     // ====== ERC-721 NFT token name, symbol and baseURI defined =====
-    constructor() ERC721("CertificateNFT", "CNFT") {}
+    constructor() ERC721("SecureDocsToken", "SDT") {}
 
     function _baseURI() internal pure override returns (string memory) {
         return "http://localhost:8000/";
     }
 
-    // ====== allocate the role for the given address =====
+    // ====== grant the privilege for the given address =====
     function grantGovernmentPrivilege(address _account) public {
         require(address(0) != _account, "need to send a valid address");
         GovernmentAccounts[_account] = true;
@@ -68,18 +68,18 @@ contract CertificateNFT is ERC721, ERC721URIStorage {
         _;
     }
 
+    // check string is valid
     function isStringValid(string memory _str) internal pure returns (bool) {
         bytes memory strBytes = bytes(_str);
         return strBytes.length > 0;
     }
 
-    // Induvituals functionalities
+    // Mint token (Induvituals functionalities)
     function mintDocument(
         address _to,
         string memory _ownerName,
         string memory _docName,
         string memory _data,
-        string memory _ipfsAddress,
         string memory _URI
     ) public onlyInduvituals {
         require(
@@ -89,16 +89,11 @@ contract CertificateNFT is ERC721, ERC721URIStorage {
         require(isStringValid(_ownerName), "Input _ownerName string is empty");
         require(isStringValid(_docName), "Input _docName string is empty");
         require(isStringValid(_data), "Input _data string is empty");
-        require(
-            isStringValid(_ipfsAddress),
-            "Input _ipfsAddress string is empty"
-        );
         require(isStringValid(_URI), "Input _URI string is empty");
 
         uint256 tokenId = certificateCounter.current();
         // mint NFT token
         _safeMint(_to, tokenId);
-
         // Set the metadata URI for the NFT
         _setTokenURI(tokenId, _URI);
 
@@ -108,13 +103,15 @@ contract CertificateNFT is ERC721, ERC721URIStorage {
             _data,
             false,
             tokenId,
-            _ipfsAddress
+            _URI
         );
         certificateCounter.increment();
         emit CertificateUploaded(_to, tokenId);
     }
 
-    // property listings
+    // property listings for marketplace (Induvituals functionalities)
+
+    // property listing data
     uint256 propertyListingCount;
     struct PropertyListing {
         address owner;
@@ -123,13 +120,14 @@ contract CertificateNFT is ERC721, ERC721URIStorage {
         string docName;
         string data;
         bool validated;
-        string ipfsAddress;
+        string description;
         bool isActive;
+        uint256 tokenId;
     }
 
     mapping(uint256 => PropertyListing) public propertyListings;
-    // mapping(address => uint256[]) public digitalLocker;
 
+    // event logs about marketplace functionalities
     event PropertyTransferred(
         uint256 indexed tokenId,
         address indexed from,
@@ -144,92 +142,117 @@ contract CertificateNFT is ERC721, ERC721URIStorage {
     );
 
     // token checking
-    modifier tokenCheck() {
-        uint256 tokenId = certificates[msg.sender].tokenId;
-        require(_exists(tokenId), "Token does not exist");
-        require(ownerOf(tokenId) == msg.sender, "Not the token owner");
+    modifier tokenCheck(uint256 _tokenId) {
+        require(_exists(_tokenId), "Token does not exist");
+        require(ownerOf(_tokenId) == msg.sender, "Not the token owner");
         _;
     }
 
+    // property listing for the marketplace
     function createPropertyListing(
-        string memory _ownerName,
+        uint256 _tokenId,
         uint256 _price,
-        string memory _docName,
-        string memory _data,
-        bool _isValidated,
-        string memory _ipfsAddress
-    ) public onlyInduvituals tokenCheck {
+        string memory _description
+    ) public onlyInduvituals tokenCheck(_tokenId) {
         require(_price > 0, "Invalid price amount");
-        require(isStringValid(_ownerName), "Input _ownerName string is empty");
-        require(isStringValid(_docName), "Input _docName string is empty");
-        require(isStringValid(_data), "Input _data string is empty");
         require(
-            isStringValid(_ipfsAddress),
-            "Input _ipfsAddress string is empty"
+            isStringValid(_description),
+            "Input _description string is empty"
         );
+
+        Certificate storage certificateDetails = certificates[msg.sender];
 
         propertyListings[propertyListingCount] = PropertyListing(
             msg.sender,
-            _ownerName,
+            certificateDetails.ownerName,
             _price,
-            _docName,
-            _data,
-            _isValidated,
-            _ipfsAddress,
-            true
+            certificateDetails.docName,
+            certificateDetails.data,
+            certificateDetails.validated,
+            _description,
+            true,
+            _tokenId
         );
         propertyListingCount += 1;
         emit PropertyListed(msg.sender, _price);
     }
 
-    function purchaseProperty(uint256 _tokenId)
-        public
-        payable
-        onlyInduvituals
-        tokenCheck
-    {
-        require(_tokenId > 0, "Invalid _tokenId value");
-        PropertyListing storage listing = propertyListings[_tokenId];
+    // set approval for the buyer
+    function setApprovalForToken(
+        address _to,
+        uint256 _tokenId
+    ) public onlyInduvituals tokenCheck(_tokenId) {
+        approve(_to, _tokenId);
+    }
 
+    // transfer the ownership to the buyer
+    function purchaseProperty(
+        uint256 _listedId,
+        string memory _newOwnerName,
+        string memory _newURI
+    ) public payable onlyInduvituals {
+        PropertyListing storage listing = propertyListings[_listedId];
+
+        require(_exists(listing.tokenId), "Token does not exist");
         require(listing.isActive, "Listing is not active");
         require(
             msg.value >= listing.price,
             "Insufficient funds to purchase the property"
         );
 
-        address oldOwner = ownerOf(_tokenId);
+        address oldOwner = ownerOf(listing.tokenId);
         require(oldOwner != msg.sender, "You already own this property");
+        require(
+            isStringValid(_newOwnerName),
+            "Input _newOwnerName string is empty"
+        );
+        require(isStringValid(_newURI), "Input _newURI string is empty");
+        require(
+            _isApprovedOrOwner(msg.sender, listing.tokenId),
+            "Caller is not token owner or approved"
+        );
 
-        // Transfer ownership of the NFT to the new owner
-        safeTransferFrom(oldOwner, msg.sender, _tokenId);
+        // transfer ownership of the NFT to the new owner
+        safeTransferFrom(oldOwner, msg.sender, listing.tokenId);
+        _setTokenURI(listing.tokenId, _newURI);
 
         payable(oldOwner).transfer(msg.value);
 
         listing.isActive = false;
 
+        certificates[msg.sender] = Certificate(
+            _newOwnerName,
+            listing.docName,
+            listing.data,
+            false,
+            listing.tokenId,
+            _newURI
+        );
+
         emit PropertyPurchasedFromMarketplace(
             oldOwner,
             msg.sender,
             msg.value,
-            _tokenId
+            listing.tokenId
         );
     }
 
-    // track digital lockers for each user
+    // digital locker functionalities for each induvituals user (Induvituals functionalities)
+
+    // digital locker data
     mapping(address => mapping(uint256 => bool)) private digitalLocker;
 
+    // log the digital locker updates
     event DigitalLockerUpdated(
         address indexed owner,
         uint256 tokenId,
         bool added
     );
 
-    function addToDigitalLocker(uint256 _tokenId)
-        external
-        onlyInduvituals
-        tokenCheck
-    {
-        require(_tokenId > 0, "Invalid _tokenId value");
+    // add the induvituals user on the digital locker
+    function addToDigitalLocker(
+        uint256 _tokenId
+    ) external onlyInduvituals tokenCheck(_tokenId) {
         require(ownerOf(_tokenId) == msg.sender, "You don't own this token");
         require(
             !digitalLocker[msg.sender][_tokenId],
@@ -240,12 +263,10 @@ contract CertificateNFT is ERC721, ERC721URIStorage {
         emit DigitalLockerUpdated(msg.sender, _tokenId, true);
     }
 
-    function removeFromDigitalLocker(uint256 _tokenId)
-        external
-        onlyInduvituals
-        tokenCheck
-    {
-        require(_tokenId > 0, "Invalid _tokenId value");
+    // remove the induvituals user on the digital locker
+    function removeFromDigitalLocker(
+        uint256 _tokenId
+    ) external onlyInduvituals tokenCheck(_tokenId) {
         require(ownerOf(_tokenId) == msg.sender, "You don't own this token");
         require(
             digitalLocker[msg.sender][_tokenId],
@@ -256,16 +277,18 @@ contract CertificateNFT is ERC721, ERC721URIStorage {
         emit DigitalLockerUpdated(msg.sender, _tokenId, false);
     }
 
-    function isInDigitalLocker(address _owner, uint256 _tokenId)
-        public
-        view
-        returns (bool)
-    {
+    // check the induvituals user is in the digital locker
+    function isInDigitalLocker(
+        address _owner,
+        uint256 _tokenId
+    ) public view returns (bool) {
         require(_owner > address(0), "Invalid _owner address");
-        require(_tokenId > 0, "Invalid _tokenId value");
         return digitalLocker[_owner][_tokenId];
     }
 
+    // property verification functionalities for each induvitual user's documets (Induvituals functionalities)
+
+    // property verification data
     struct VerificationRequest {
         address requester;
         address governmentAddress;
@@ -276,29 +299,28 @@ contract CertificateNFT is ERC721, ERC721URIStorage {
     mapping(uint256 => VerificationRequest) public verificationRequests;
     uint256 public verificationRequestId;
 
+    // log events of the property verification process
     event DocumentVerificationRequested(
         uint256 indexed requestId,
         address indexed requester,
         address indexed governmentAddress,
         uint256 tokenId
     );
-
     event DocumentVerificationResult(
         uint256 indexed requestId,
         address indexed requester,
         bool _isValid
     );
 
-    function requestDocumentVerification(uint256 _tokenId, address _govAddress)
-        external
-        onlyInduvituals
-        tokenCheck
-    {
+    // request document verification from induvitual user's to government
+    function requestDocumentVerification(
+        uint256 _tokenId,
+        address _govAddress
+    ) external onlyInduvituals tokenCheck(_tokenId) {
         require(
             GovernmentAccounts[_govAddress] == true,
             "Invalid government address"
         );
-        require(_tokenId > 0, "Invalid _tokenId value");
 
         verificationRequests[verificationRequestId++] = VerificationRequest(
             msg.sender,
@@ -315,13 +337,13 @@ contract CertificateNFT is ERC721, ERC721URIStorage {
         );
     }
 
-    // Government functionalities
+    // property verification functionalities for each induvitual user's documets (Government functionalities)
 
-    function validateDocumentVerification(uint256 _requestId, bool _isValid)
-        external
-        onlyGovernment
-    {
-        require(_requestId > 0, "Invalid _tokenId value");
+    // validate the induvitual user's documents
+    function validateDocumentVerification(
+        uint256 _requestId,
+        bool _isValid
+    ) external onlyGovernment {
         VerificationRequest storage request = verificationRequests[_requestId];
         require(request.requester != address(0), "Invalid request ID");
         require(!request.isVerified, "Request already verified");
@@ -338,29 +360,21 @@ contract CertificateNFT is ERC721, ERC721URIStorage {
     }
 
     // The following functions are overrides required by Solidity.
-    function _burn(uint256 tokenId)
-        internal
-        override(ERC721, ERC721URIStorage)
-        onlyInduvituals
-    {
+    function _burn(
+        uint256 tokenId
+    ) internal override(ERC721, ERC721URIStorage) onlyInduvituals {
         super._burn(tokenId);
     }
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override(ERC721, ERC721URIStorage)
-        returns (string memory)
-    {
+    function tokenURI(
+        uint256 tokenId
+    ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
         return super.tokenURI(tokenId);
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC721, ERC721URIStorage)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC721, ERC721URIStorage) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }
