@@ -19,9 +19,11 @@ app.set('view engine', 'ejs')
 //Routes
 const AuthenticationRoute = require('./routes/authRoutes.js')
 const DashboardRoute = require('./routes/dashboardRoute.js')
+const IPFSRoute = require('./routes/ipfsRoutes.js')
 
 app.use('/auth', AuthenticationRoute)
 app.use('/', DashboardRoute)
+app.use('/ipfs',IPFSRoute)
 
 
 app.get("/",(req,res)=>{

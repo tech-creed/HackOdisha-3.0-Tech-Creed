@@ -37,7 +37,7 @@ contract SecureDocsToken is ERC721, ERC721URIStorage {
     constructor() ERC721("SecureDocsToken", "SDT") {}
 
     function _baseURI() internal pure override returns (string memory) {
-        return "http://localhost:8000/";
+        return "https://";
     }
 
     // ====== grant the privilege for the given address =====

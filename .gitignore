@@ -45,6 +45,9 @@ jspm_packages/
 #truffle compiled json files directory
 build/
 
+# for temp file storage
+tmp/
+
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 
