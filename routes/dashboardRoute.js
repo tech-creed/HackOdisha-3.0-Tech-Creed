@@ -10,14 +10,6 @@ router.get("/dashboard-gov",(req,res)=>{
     res.render('GovernmentDashboard')
 })
 
-router.get("/document",(req,res)=>{
-    res.render('document')
-})
-
-router.get("/doc-upload",(req,res)=>{
-    res.render('upload')
-})
-
 router.get("/locker",(req,res)=>{
     res.render('locker')
 })

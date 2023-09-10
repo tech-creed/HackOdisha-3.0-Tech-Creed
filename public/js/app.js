@@ -63,8 +63,14 @@ App = {
         App.contracts.user = TruffleContract(UserContract)
         App.contracts.user.setProvider(App.web3Provider)
 
+        // NFT ABI
+        const NFTContract = await $.getJSON('/contracts/SecureDocsToken.json')
+        App.contracts.nft = TruffleContract(NFTContract)
+        App.contracts.nft.setProvider(App.web3Provider)
+
         // store the deployes version of the smart contract
         App.user = await App.contracts.user.deployed()
+        App.nft = await App.contracts.nft.deployed()
 
     },
 
@@ -76,18 +82,24 @@ App = {
         data['role'] = document.getElementById('register_role').value
         data['authority'] = document.getElementById('register_authority').value
         data['wallet_id'] = App.account
+        
+        if(data['role'] == "government"){
+            await App.nft.grantGovernmentPrivilege(App.account,{ from: App.account })
+        }else if(data['role'] == "individual"){
+            await App.nft.grantInduvitualsPrivilege(App.account,{ from: App.account })
+        }
 
         await App.user.setUser(data['wallet_id'], data['name'], data['role'], data['authority'], { from: App.account })
         let r = await fetch('/auth/register', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-type': 'application/json;charset=UTF-8' } })
         r = await r.json()
         if (r && data['role'] === "government") {
-            alert(data['name'] + ' Welcome to the ****')
+            alert(data['name'] + ' Welcome to the SecureDocs DApp')
             window.location.href = `/dashboard-gn`
         }else if(r && data['role'] === "individual"){
-            alert(data['name'] + ' Welcome to the ****')
+            alert(data['name'] + ' Welcome to the SecureDocs DApp')
             window.location.href = `/dashboard-in`
         }else{
-            alert(r.error);
+            alert("Server error while Register");
         }
     },
 
@@ -105,13 +117,13 @@ App = {
             let r = await fetch('/auth/login', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-type': 'application/json; charset=UTF-8' } })
             r = await r.json();
             if (r && data['role'] === "government") {
-                alert(data['name'] + ' Welcome to the ****')
+                alert(data['name'] + ' Welcome to the SecureDocs DApp')
                 window.location.href = `/dashboard-gn`
             }else if(r && data['role'] === "individual"){
-                alert(data['name'] + ' Welcome to the ****')
+                alert(data['name'] + ' Welcome to the SecureDocs DApp')
                 window.location.href = `/dashboard-in`
             }else{
-                alert(r.error);
+                alert("Server error while Login");
             }
         } else {
             alert('need to register')

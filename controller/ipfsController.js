@@ -72,7 +72,7 @@ const web3StorageUpload = async (req, res) => {
 }
 
 const fileUploadPage = async(req,res)=>{
-    res.render("ipfsUpload")
+    res.render("upload")
 }
 
 module.exports ={web3StorageUpload,fileUploadPage}
