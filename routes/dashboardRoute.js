@@ -14,4 +14,8 @@ router.get("/document",(req,res)=>{
     res.render('document')
 })
 
+router.get("/doc-upload",(req,res)=>{
+    res.render('upload')
+})
+
 module.exports = router;
