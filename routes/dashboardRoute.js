@@ -18,4 +18,8 @@ router.get("/doc-upload",(req,res)=>{
     res.render('upload')
 })
 
+router.get("/locker",(req,res)=>{
+    res.render('locker')
+})
+
 module.exports = router;
